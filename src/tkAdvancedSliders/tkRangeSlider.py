@@ -1,12 +1,26 @@
-from tkinter import *
-from tkinter import ttk
-
 # RangeSlider is a widget that features a two-headed range slider, useful for any situation that
 # requires a user to mark 'in' and 'out' points.
 # A demo (executed when running this script as main) is provided at the end of this file.
 
 # RangeSlider builds upon MenxLi's 'tkSliderWidget' at https://github.com/MenxLi/tkSliderWidget
 
+from tkinter import *
+from tkinter import ttk
+
+from typing import Callable, NamedTuple, Any
+
+# Head Bubble Formatting
+class HeadFormatOptions(NamedTuple):
+    outer_radius: int = 10
+    outer_colour: str = "#c2d6d6"
+    inner_radius: int = 5
+    inner_colour: str = "#5c8a8a"
+    line_width:   int = 2
+
+# Line Formatting
+class LineFormatOptions(NamedTuple):
+    colour: str = "#476b6b"
+    width:  int = 3
 
 class RangeSlider(Frame):
     """RangeSlider presents a double-headed slider to the user.
@@ -14,14 +28,25 @@ class RangeSlider(Frame):
     """
     LINE_COLOUR = "#476b6b"
     LINE_WIDTH = 3
+
     HEAD_COLOUR_INNER = "#5c8a8a"
     HEAD_COLOUR_OUTER = "#c2d6d6"
     HEAD_RADIUS = 10
     HEAD_RADIUS_INNER = 5
     HEAD_LINE_WIDTH = 2
 
-    def __init__(self, master, value_min=0, value_max=1, width=400, height=40,
-                 value_display=lambda v: f"{v:0.2f}", inverse_display=lambda s: float(s)):
+    def __init__(
+            self, 
+            master: Any, # This should be a Tk _something_
+            *,
+            value_min: int = 0, # These might be numeric?
+            value_max: int = 1, # These might be numeric?
+            width: int  = 400,  # These might be numeric?
+            height: int = 40,   # These might be numeric? 
+            value_display: Callable[[float], str]   = lambda v: f"{v:0.2f}",
+            inverse_display: Callable[[str], float] = lambda s: float(s)
+        ):
+        
         Frame.__init__(self, master, height=height, width=width)
         self.master = master
         self.user_moved_sliders_since_last_check = False
