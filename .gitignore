@@ -1,3 +1,4 @@
+# Pulled from Github's default .gitignored
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
