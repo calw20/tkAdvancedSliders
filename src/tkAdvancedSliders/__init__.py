@@ -1,2 +1,2 @@
-from .range_slider import RangeSlider
-from .tkSliderWidget import Slider
+from .tkMutliSlider import Slider
+from .tkRangeSlider import RangeSlider
