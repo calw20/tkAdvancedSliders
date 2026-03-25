@@ -1,0 +1,14 @@
+[project]
+name = "tkinter-range-slider"
+version = "0.1.0"
+description = "A tkinter widget that features a two-headed range slider."
+readme = "README.md"
+authors = [
+    { name = "Cal Wing", email = "20716204+calw20@users.noreply.github.com" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"
