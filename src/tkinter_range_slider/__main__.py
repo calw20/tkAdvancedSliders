@@ -24,6 +24,7 @@ if __name__ == "__main__":
         removable=True,
         addable=True,
     )
+    slider_original.grid(row=2)
 
     # Bind right-clicking on the window to return the values of 'in' and 'out'.
     # These are the primary outputs of this widget and what you would use in your code.
