@@ -8,14 +8,14 @@
             "name": "Python Debugger: Run Main Module",
             "type": "debugpy",
             "request": "launch",
-            "module": "tkinter_range_slider",
+            "module": "tkAdvancedSliders",
             "console": "integratedTerminal",
         },
         {
             "name": "Python Debugger: UV Sync & Run Main Module",
             "type": "debugpy",
             "request": "launch",
-            "module": "tkinter_range_slider",
+            "module": "tkAdvancedSliders",
             "console": "integratedTerminal",
             "preLaunchTask": "uv_sync"
         },

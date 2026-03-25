@@ -1,7 +1,7 @@
 [project]
-name = "tkinter-range-slider"
+name = "tkAdvancedSliders"
 version = "0.1.0"
-description = "A tkinter widget that features a two-headed range slider."
+description = "A collection of advanced tkinter slider widgets."
 readme = "README.md"
 authors = [
     { name = "Cal Wing", email = "20716204+calw20@users.noreply.github.com" }

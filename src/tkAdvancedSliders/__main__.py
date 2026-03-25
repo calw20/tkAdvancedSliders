@@ -36,4 +36,5 @@ if __name__ == "__main__":
         print(f"Original Slider: {slider_original.getValues()}")
     root.bind('<Button-3>', log_values)
 
+    root.title("tkAdvancedSliders Demo")
     root.mainloop()
