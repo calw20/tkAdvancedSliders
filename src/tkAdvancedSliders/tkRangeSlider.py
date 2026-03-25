@@ -4,23 +4,57 @@
 
 # RangeSlider builds upon MenxLi's 'tkSliderWidget' at https://github.com/MenxLi/tkSliderWidget
 
+from typing import Callable, NamedTuple, Any
+
 from tkinter import *
 from tkinter import ttk
 
-from typing import Callable, NamedTuple, Any
+from .common_typing import Numeric, HeadFormatOptions, LineFormatOptions
+from .tkMutliSlider import Slider
 
-# Head Bubble Formatting
-class HeadFormatOptions(NamedTuple):
-    outer_radius: int = 10
-    outer_colour: str = "#c2d6d6"
-    inner_radius: int = 5
-    inner_colour: str = "#5c8a8a"
-    line_width:   int = 2
 
-# Line Formatting
-class LineFormatOptions(NamedTuple):
-    colour: str = "#476b6b"
-    width:  int = 3
+class RangeSliderNew(Slider):
+    def __init__(
+            self, 
+            master: Any, # This should be a Tk _something_
+            *,
+            value_min: Numeric = 0,
+            value_max: Numeric = 1,
+            width:  int = 400,  # These might be numeric?
+            height: int = 40,   # These might be numeric? 
+            value_display: Callable[[Numeric], str] = lambda v: f"{v:0.2f}",
+            inverse_display: Callable[[str], float] = lambda s: float(s)
+        ):
+        super().__init__(
+            master, width, height, value_min, value_max,
+
+            init_lis = None,
+
+            step_size = 0.25, 
+            
+            show_value=True,
+
+            removable=False, addable=False,
+
+            value_display=value_display
+        )
+
+        self._add_new_bar(0.25, HeadFormatOptions(inner_colour="#00ff00"))
+        self._add_new_bar(0.75, HeadFormatOptions(inner_colour="#ff0000"))
+
+
+    def get_in_and_out(self) -> tuple[Numeric, Numeric]:
+        """
+        Obtain the values of the 'in' and 'out' marks.
+
+        Returns (in, out) as a tuple.
+        """
+        
+        values = tuple(self.get_values())
+        assert len(values) == 2
+
+        return values
+
 
 class RangeSlider(Frame):
     """RangeSlider presents a double-headed slider to the user.
@@ -39,9 +73,9 @@ class RangeSlider(Frame):
             self, 
             master: Any, # This should be a Tk _something_
             *,
-            value_min: int = 0, # These might be numeric?
-            value_max: int = 1, # These might be numeric?
-            width: int  = 400,  # These might be numeric?
+            value_min: Numeric = 0,
+            value_max: Numeric = 1,
+            width:  int = 400,  # These might be numeric?
             height: int = 40,   # These might be numeric? 
             value_display: Callable[[float], str]   = lambda v: f"{v:0.2f}",
             inverse_display: Callable[[str], float] = lambda s: float(s)

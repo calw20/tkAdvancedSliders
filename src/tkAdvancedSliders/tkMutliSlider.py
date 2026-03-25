@@ -5,10 +5,13 @@ from typing import TypedDict, List, Callable, Optional, Union
 
 from .common_typing import Numeric, HeadFormatOptions, LineFormatOptions
 
+type BarCompIDs = tuple[int, int, int | None]
+
 class Bar(TypedDict):
-    Ids: List[int]
+    Ids: BarCompIDs
     Pos: float
     Value: float
+    fmtOptions: HeadFormatOptions
 
 num_t = Union[int, float]
 class Slider(Frame):
@@ -45,7 +48,9 @@ class Slider(Frame):
         addable = False,
 
         *,
-        value_display: Callable[[Numeric], str] | None = None
+        value_display: Callable[[Numeric], str] | None = None,
+        bar_format: HeadFormatOptions = HeadFormatOptions(),
+        allow_empty_bar: bool = False,
     ):
         if step_size == None:
             # inherit from class variable
@@ -55,10 +60,14 @@ class Slider(Frame):
         assert min_val < max_val, "min value must be smaller than max value"
 
         self._value_display = value_display
+        self._bar_format = bar_format
 
         Frame.__init__(self, master, height=height, width=width)
         self.master = master
-        if init_lis == None:
+
+        init_lis = init_lis if init_lis is not None else []
+
+        if allow_empty_bar and len(init_lis) == 0:
             init_lis = [min_val]
 
         self.init_lis = init_lis
@@ -84,13 +93,15 @@ class Slider(Frame):
         for value in self.init_lis:
             pos = (value - min_val) / (max_val - min_val)
             ids = []
-            bar: Bar = {"Pos": pos, "Ids": ids, "Value": value}
+            bar: Bar = {"Pos": pos, "Ids": ids, "Value": value, "fmtOptions": self._bar_format}
             self.bars.append(bar)
 
         self.canv = Canvas(self, height=self.canv_H, width=self.canv_W)
         self.canv.pack()
         self.canv.bind("<Motion>", self._mouse_motion)
         self.canv.bind("<B1-Motion>", self._move_bar)
+        
+        # Add / Remove Bindings
         if removable:
             self.canv.bind("<3>", self._remove_bar)
         if addable:
@@ -142,6 +153,7 @@ class Slider(Frame):
         idx = self.selected_idx
         ids = self.bars[idx]["Ids"]
         for id in ids:
+            if id is None: continue
             self.canv.delete(id)
         self.bars.pop(idx)
 
@@ -151,65 +163,93 @@ class Slider(Frame):
 
         if self.selected_idx == None:
             pos = self.__calc_pos(x)
-            ids = []
-            bar = {
-                "Pos": pos,
-                "Ids": ids,
-                "Value": self.__calc_pos(x) * (self.max_val - self.min_val)
-                + self.min_val,
-            }
-            self.bars.append(bar)
+            
 
-            for i in self.bars:
-                ids = i["Ids"]
-                for id in ids:
-                    self.canv.delete(id)
+    def _add_new_bar(
+            self, 
+            pos: float, 
+            head_format_options: HeadFormatOptions
+        ) -> BarCompIDs:
+        
+        bar: Bar = {
+            "Pos": pos,
+            "Ids": (None, None, None), # type: ignore
+            "Value": pos,
+            "fmtOptions": head_format_options
+        }
+        self.bars.append(bar)
 
-            for bar in self.bars:
-                bar["Ids"] = self.__add_bar(bar["Pos"])
+        for i in self.bars:
+            ids = i["Ids"]
+            for id in ids:
+                if id is None: continue
+                self.canv.delete(id)
+
+        for bar in self.bars:
+            bar["Ids"] = self.__add_bar(bar["Pos"], bar["fmtOptions"])
+
+        return self.bars[-1]["Ids"]
 
     def __add_track(self, startx, starty, endx, endy):
         id1 = self.canv.create_line(
             startx, starty, endx, endy, fill=Slider.LINE_COLOR, width=Slider.LINE_WIDTH
         )
-        return id
+        return id1
 
-    def __add_bar(self, pos):
+    def __add_bar(
+            self, 
+            pos: float, 
+            head_format_options: HeadFormatOptions = HeadFormatOptions(),
+        ) -> BarCompIDs:
         """@ pos: position of the bar, ranged from (0,1)"""
         if pos < 0 or pos > 1:
             raise Exception("Pos error - Pos: " + str(pos))
-        R = Slider.BAR_RADIUS
-        r = Slider.BAR_RADIUS_INNER
+        
+        R = head_format_options.outer_radius
+        r = head_format_options.inner_radius
         L = self.canv_W - 2 * self.slider_x
         y = self.slider_y
         x = self.slider_x + pos * L
+
+        # Create bar
         id_outer = self.canv.create_oval(
             x - R,
             y - R,
             x + R,
             y + R,
-            fill=Slider.BAR_COLOR_OUTTER,
-            width=2,
+            fill = head_format_options.outer_colour,
+            width = head_format_options.line_width,
             outline="",
         )
         id_inner = self.canv.create_oval(
-            x - r, y - r, x + r, y + r, fill=Slider.BAR_COLOR_INNER, outline=""
+            x - r, 
+            y - r, 
+            x + r, 
+            y + r, 
+            fill = head_format_options.inner_colour, 
+            outline=""
         )
+
+        # Show Text Formatter
+        id_value = None
         if self.show_value:
-            y_value = y + Slider.BAR_RADIUS + 8
+            y_value = y + head_format_options.outer_radius + 8
             value = pos * (self.max_val - self.min_val) + self.min_val
             id_value = self.canv.create_text(
                 x, y_value, text=(self._value_display(value) if self._value_display else format(value, Slider.DIGIT_PRECISION))
             )
-            return [id_outer, id_inner, id_value]
-        else:
-            return [id_outer, id_inner]
+
+        return id_outer, id_inner, id_value
 
     def __move_bar(self, idx, pos):
         ids = self.bars[idx]["Ids"]
-        for id in ids:
-            self.canv.delete(id)
-        self.bars[idx]["Ids"] = self.__add_bar(pos)
+        
+        # Loop over bar component ids
+        for bc_id in ids:
+            if bc_id is None: continue
+            self.canv.delete(bc_id)
+
+        self.bars[idx]["Ids"] = self.__add_bar(pos, self.bars[idx]["fmtOptions"])
         self.bars[idx]["Pos"] = pos
         self.bars[idx]["Value"] = pos * (self.max_val - self.min_val) + self.min_val
         self._val_change_callback(self.get_values())
