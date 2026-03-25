@@ -1,2 +1,2 @@
-def hello() -> str:
-    return "Hello from tkinter-range-slider!"
+from .range_slider import RangeSlider
+from .tkSliderWidget import Slider

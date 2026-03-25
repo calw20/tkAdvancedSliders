@@ -324,26 +324,3 @@ class RangeSlider(Frame):
         state = 'enabled' if self.__inverse_display else 'disabled'
         self.__entry_in['state'] = state
         self.__entry_out['state'] = state
-
-if __name__ == "__main__":
-    # Short demo with two sliders - one with numbers 0.0-1.0, the other with timestamps 0:00 - 51:05
-    DEMO_MAXIMUM_TIME_IN_SECONDS = 3065  # 51:05
-
-    root = Tk()
-    slider = RangeSlider(root)
-    slider.grid(row=0)
-
-    timestamp_slider = RangeSlider(root, value_min=0, value_max=DEMO_MAXIMUM_TIME_IN_SECONDS)
-    timestamp_slider.grid(row=1)
-    timestamp_slider.change_display(*RangeSlider.timestamp_display_builder(DEMO_MAXIMUM_TIME_IN_SECONDS))
-
-    # Bind right-clicking on the window to return the values of 'in' and 'out'.
-    # These are the primary outputs of this widget and what you would use in your code.
-    # Note that the second widget returns the values in seconds because of the specific setup and not through necessity.
-
-    def log_values(*args):
-        print(f"Top slider values: {slider.get_in_and_out()}")
-        print(f"Bottom slider values: {timestamp_slider.get_in_and_out()}")
-    root.bind('<Button-3>', log_values)
-
-    root.mainloop()
