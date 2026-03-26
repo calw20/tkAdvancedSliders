@@ -7,7 +7,7 @@ from .common_typing import Numeric, KnobFormatOptions, LineFormatOptions
 
 type BarCompIDs = tuple[int, int, int | None]
 
-class Bar(TypedDict):
+class KnobInfo(TypedDict):
     Ids: BarCompIDs
     Pos: float
     Value: float
@@ -49,7 +49,7 @@ class Slider(Frame):
 
         *,
         value_display: Callable[[Numeric], str] | None = None,
-        bar_format: KnobFormatOptions = KnobFormatOptions(),
+        knob_format: KnobFormatOptions | None = None,
         allow_empty_bar: bool = False,
     ):
         if step_size == None:
@@ -60,7 +60,7 @@ class Slider(Frame):
         assert min_val < max_val, "min value must be smaller than max value"
 
         self._value_display = value_display
-        self._bar_format = bar_format
+        self._knob_format = knob_format if knob_format else KnobFormatOptions()
 
         Frame.__init__(self, master, height=height, width=width)
         self.master = master
@@ -88,33 +88,37 @@ class Slider(Frame):
 
         self._val_change_callback = lambda lis: None
 
-        self.bars: List[Bar] = []
+        self.knobs: List[KnobInfo] = []
         self.selected_idx = None  # current selection bar index
         for value in self.init_lis:
             pos = (value - min_val) / (max_val - min_val)
-            ids = []
-            bar: Bar = {"Pos": pos, "Ids": ids, "Value": value, "fmtOptions": self._bar_format}
-            self.bars.append(bar)
+            knob: KnobInfo = {
+                "Pos": pos, 
+                "Ids": [], 
+                "Value": value, 
+                "fmtOptions": self._knob_format
+            }
+            self.knobs.append(knob)
 
         self.canv = Canvas(self, height=self.canv_H, width=self.canv_W)
         self.canv.pack()
         self.canv.bind("<Motion>", self._mouse_motion)
-        self.canv.bind("<B1-Motion>", self._move_bar)
+        self.canv.bind("<B1-Motion>", self._move_knob)
         
         # Add / Remove Bindings
         if removable:
-            self.canv.bind("<3>", self._remove_bar)
+            self.canv.bind("<3>", self._remove_knob)
         if addable:
-            self.canv.bind("<ButtonRelease-1>", self._add_bar)
+            self.canv.bind("<ButtonRelease-1>", self._add_knob)
 
         self.__add_track(
             self.slider_x, self.slider_y, self.canv_W - self.slider_x, self.slider_y
         )
-        for bar in self.bars:
-            bar["Ids"] = self.__add_bar(bar["Pos"])
+        for knob in self.knobs:
+            knob["Ids"] = self.__add_knob(knob["Pos"])
 
     def get_values(self) -> List[float]:
-        values = [bar["Value"] for bar in self.bars]
+        values = [bar["Value"] for bar in self.knobs]
         return sorted(values)
     
     def set_value_change_callback(self, callback: Callable[[List[float]], None]):
@@ -131,64 +135,64 @@ class Slider(Frame):
             self.canv.config(cursor="")
             self.selected_idx = None
 
-    def _move_bar(self, event):
+    def _move_knob(self, event):
         x = event.x
         y = event.y
         if self.selected_idx == None:
             return False
-        pos = self.__calc_pos(x)
+        pos = self._calc_pos(x)
         idx = self.selected_idx
         if self.step_size_frac > 0:
-            curr_pos = self.bars[idx]["Pos"]
+            curr_pos = self.knobs[idx]["Pos"]
             if abs(curr_pos - pos) < (self.step_size_frac * 0.75):
                 return
             pos = round(pos / self.step_size_frac) * self.step_size_frac
-        self.__move_bar(idx, pos)
+        self.__move_knob(idx, pos)
 
-    def _remove_bar(self, event):
+    def _remove_knob(self, event):
         x = event.x
         y = event.y
         if self.selected_idx == None:
             return False
         idx = self.selected_idx
-        ids = self.bars[idx]["Ids"]
+        ids = self.knobs[idx]["Ids"]
         for id in ids:
             if id is None: continue
             self.canv.delete(id)
-        self.bars.pop(idx)
+        self.knobs.pop(idx)
 
-    def _add_bar(self, event):
+    def _add_knob(self, event):
         x = event.x
         y = event.y
 
         if self.selected_idx == None:
-            pos = self.__calc_pos(x)
+            pos = self._calc_pos(x)
             
 
-    def _add_new_bar(
+    def _add_new_knob(
             self, 
             pos: float, 
             head_format_options: KnobFormatOptions
         ) -> BarCompIDs:
         
-        bar: Bar = {
+        bar: KnobInfo = {
             "Pos": pos,
             "Ids": (None, None, None), # type: ignore
             "Value": pos,
             "fmtOptions": head_format_options
         }
-        self.bars.append(bar)
+        self.knobs.append(bar)
 
-        for i in self.bars:
+        for i in self.knobs:
             ids = i["Ids"]
             for id in ids:
                 if id is None: continue
                 self.canv.delete(id)
 
-        for bar in self.bars:
-            bar["Ids"] = self.__add_bar(bar["Pos"], bar["fmtOptions"])
+        for bar in self.knobs:
+            bar["Ids"] = self.__add_knob(bar["Pos"], bar["fmtOptions"])
 
-        return self.bars[-1]["Ids"]
+        return self.knobs[-1]["Ids"]
 
     def __add_track(self, startx, starty, endx, endy):
         id1 = self.canv.create_line(
@@ -196,7 +200,7 @@ class Slider(Frame):
         )
         return id1
 
-    def __add_bar(
+    def __add_knob(
             self, 
             pos: float, 
             head_format_options: KnobFormatOptions = KnobFormatOptions(),
@@ -241,20 +245,20 @@ class Slider(Frame):
 
         return id_outer, id_inner, id_value
 
-    def __move_bar(self, idx, pos):
-        ids = self.bars[idx]["Ids"]
+    def __move_knob(self, idx, pos):
+        ids = self.knobs[idx]["Ids"]
         
         # Loop over bar component ids
         for bc_id in ids:
             if bc_id is None: continue
             self.canv.delete(bc_id)
 
-        self.bars[idx]["Ids"] = self.__add_bar(pos, self.bars[idx]["fmtOptions"])
-        self.bars[idx]["Pos"] = pos
-        self.bars[idx]["Value"] = pos * (self.max_val - self.min_val) + self.min_val
+        self.knobs[idx]["Ids"] = self.__add_knob(pos, self.knobs[idx]["fmtOptions"])
+        self.knobs[idx]["Pos"] = pos
+        self.knobs[idx]["Value"] = pos * (self.max_val - self.min_val) + self.min_val
         self._val_change_callback(self.get_values())
 
-    def __calc_pos(self, x):
+    def _calc_pos(self, x):
         """calculate position from x coordinate"""
         pos = (x - self.slider_x) / (self.canv_W - 2 * self.slider_x)
         if pos < 0:
@@ -269,8 +273,8 @@ class Slider(Frame):
         To check if the position is inside the bounding rectangle of a Bar
         Return [True, bar_index] or [False, None]
         """
-        for idx in range(len(self.bars)):
-            id = self.bars[idx]["Ids"][0]
+        for idx in range(len(self.knobs)):
+            id = self.knobs[idx]["Ids"][0]
             bbox = self.canv.bbox(id)
             if bbox[0] < x and bbox[2] > x and bbox[1] < y and bbox[3] > y:
                 return [True, idx]
