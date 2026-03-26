@@ -85,7 +85,16 @@ class RangeSliderNew(Slider):
             pos = knob_start_locs[i]
 
             # Add bars
-            self._add_new_bar(pos, fmt)
+            self._add_new_knob(pos, fmt)
+
+    def _move_knob(self, event):
+        x = event.x
+        if self.selected_idx == None:
+            return False
+        selected_pos = self._calc_pos(x)
+        for idx in self.knobs
+
+        return super()._move_knob(event)
 
     def get_min_max_knobs(self) -> tuple[Numeric, Numeric]:
         """
