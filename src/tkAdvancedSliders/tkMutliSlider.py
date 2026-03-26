@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
 
-from typing import TypedDict, List, Callable, Optional, Union
+from typing import TypedDict, List, Callable, Optional
 
 from .common_typing import Numeric, KnobFormatOptions, LineFormatOptions
 
@@ -13,7 +13,6 @@ class KnobInfo(TypedDict):
     value: float
     fmt_options: KnobFormatOptions
 
-num_t = Union[int, float]
 class Slider(Frame):
     LINE_COLOR = "#476b6b"
     LINE_WIDTH = 3
@@ -36,12 +35,12 @@ class Slider(Frame):
 
         width: int = 400,
         height: int = 80,
-        min_val: num_t = 0,
-        max_val: num_t = 1,
+        min_val: Numeric = 0,
+        max_val: Numeric = 1,
 
         step_size: Optional[float] = None,
         
-        init_lis: Optional[list[num_t]] = None,
+        init_lis: Optional[list[Numeric]] = None,
 
         show_value = True,
         removable = False,
@@ -93,11 +92,11 @@ class Slider(Frame):
         for value in self.init_lis:
             pos = (value - min_val) / (max_val - min_val)
             knob: KnobInfo = {
-                "ids": pos, 
-                "norm_pos": [], 
+                "norm_pos": pos, 
+                "ids": (None, None, None), # type: ignore 
                 "value": value, 
                 "fmt_options": self._knob_format
-            }
+            } 
             self.knobs.append(knob)
 
         self.canv = Canvas(self, height=self.canv_H, width=self.canv_W)
@@ -176,8 +175,8 @@ class Slider(Frame):
         ) -> BarCompIDs:
         
         bar: KnobInfo = {
-            "ids": pos,
-            "norm_pos": (None, None, None), # type: ignore
+            "ids": (None, None, None), # type: ignore
+            "norm_pos": pos,
             "value": pos,
             "fmt_options": head_format_options
         }

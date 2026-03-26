@@ -78,9 +78,16 @@ class RangeSliderNew(Slider):
         knob_start_locs = knob_start_locs if knob_start_locs else even_point_space(num_knobs)
 
         ## Setup the Slider Knobs
+        # Since the linspace is in order this will add knobs in order of
+        # min -> max
         for i in range(num_knobs):
-            fmt = knob_formatter if isinstance(knob_formatter, KnobFormatOptions) else knob_formatter[i]
-            fmt = fmt if fmt else KnobFormatOptions()
+            fmt = None
+            if knob_formatter is None:
+                fmt = KnobFormatOptions()
+            elif isinstance(knob_formatter, KnobFormatOptions):
+                fmt = knob_formatter
+            else:
+                fmt = knob_formatter[i]
 
             pos = knob_start_locs[i]
 
@@ -92,7 +99,9 @@ class RangeSliderNew(Slider):
         if self.selected_idx == None:
             return False
         selected_pos = self._calc_pos(x)
-        for idx in self.knobs
+        
+        for i, idx in self.knobs:
+            pass    
 
         return super()._move_knob(event)
 
