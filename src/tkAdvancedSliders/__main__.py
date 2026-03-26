@@ -29,12 +29,15 @@ if __name__ == "__main__":
     slider_new = RangeSliderNew(root)
     slider_new.grid(row=3)
 
+    slider_new_new = RangeSliderNew(root, num_knobs=5)
+    slider_new_new.grid(row=4)
+
     # Bind right-clicking on the window to return the values of 'in' and 'out'.
     # These are the primary outputs of this widget and what you would use in your code.
     # Note that the second widget returns the values in seconds because of the specific setup and not through necessity.
 
     def log_values(*args):
-        print(f"New slider values: {slider_new.get_in_and_out()}")
+        print(f"New slider values: {slider_new.get_min_max_knobs()}")
         print(f"Top slider values: {slider.get_in_and_out()}")
         print(f"Bottom slider values: {timestamp_slider.get_in_and_out()}")
         print(f"Original Slider: {slider_original.get_values()}")

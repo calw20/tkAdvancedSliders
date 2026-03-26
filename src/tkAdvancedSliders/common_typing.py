@@ -6,7 +6,7 @@ from typing import NamedTuple
 type Numeric = int | float
 
 # Head Bubble Formatting
-class HeadFormatOptions(NamedTuple):
+class KnobFormatOptions(NamedTuple):
     outer_radius: int = 10
     outer_colour: str = "#c2d6d6"
     inner_radius: int = 5

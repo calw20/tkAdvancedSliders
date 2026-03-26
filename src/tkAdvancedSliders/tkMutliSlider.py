@@ -3,7 +3,7 @@ from tkinter.ttk import *
 
 from typing import TypedDict, List, Callable, Optional, Union
 
-from .common_typing import Numeric, HeadFormatOptions, LineFormatOptions
+from .common_typing import Numeric, KnobFormatOptions, LineFormatOptions
 
 type BarCompIDs = tuple[int, int, int | None]
 
@@ -11,7 +11,7 @@ class Bar(TypedDict):
     Ids: BarCompIDs
     Pos: float
     Value: float
-    fmtOptions: HeadFormatOptions
+    fmtOptions: KnobFormatOptions
 
 num_t = Union[int, float]
 class Slider(Frame):
@@ -49,7 +49,7 @@ class Slider(Frame):
 
         *,
         value_display: Callable[[Numeric], str] | None = None,
-        bar_format: HeadFormatOptions = HeadFormatOptions(),
+        bar_format: KnobFormatOptions = KnobFormatOptions(),
         allow_empty_bar: bool = False,
     ):
         if step_size == None:
@@ -168,7 +168,7 @@ class Slider(Frame):
     def _add_new_bar(
             self, 
             pos: float, 
-            head_format_options: HeadFormatOptions
+            head_format_options: KnobFormatOptions
         ) -> BarCompIDs:
         
         bar: Bar = {
@@ -199,7 +199,7 @@ class Slider(Frame):
     def __add_bar(
             self, 
             pos: float, 
-            head_format_options: HeadFormatOptions = HeadFormatOptions(),
+            head_format_options: KnobFormatOptions = KnobFormatOptions(),
         ) -> BarCompIDs:
         """@ pos: position of the bar, ranged from (0,1)"""
         if pos < 0 or pos > 1:

@@ -4,14 +4,40 @@
 
 # RangeSlider builds upon MenxLi's 'tkSliderWidget' at https://github.com/MenxLi/tkSliderWidget
 
-from typing import Callable, NamedTuple, Any
+from typing import Callable, NamedTuple, Any, Sequence
 
 from tkinter import *
 from tkinter import ttk
 
-from .common_typing import Numeric, HeadFormatOptions, LineFormatOptions
+from .common_typing import Numeric, KnobFormatOptions, LineFormatOptions
 from .tkMutliSlider import Slider
 
+
+# Try to use numpy linspace if its present
+# Really it don't matter, should probs remove this
+try:
+    from numpy import linspace as np_lin
+    def linspace(start: Numeric, stop: Numeric, num_steps: int) -> list[float]:
+        return np_lin(start, stop, num_steps).tolist()
+    
+except ImportError:
+    # https://gist.github.com/davebiagioni/1ac21feb1c2db04be4e6
+    # https://stackoverflow.com/questions/60695284/linearly-spaced-array-in-c
+    def linspace(start: Numeric, stop: Numeric, num_steps: int) -> list[float]:
+        step = (stop - start) / (num_steps - 1)
+        return [round(start + (i * step), 8) for i in range(0, num_steps)]
+
+# Use linspace to put the relivenet number of points around
+def even_point_space(num_points: int) -> tuple[float, ...]:
+    # Determine Start, Stop, Step
+    side_distance = (1 / num_points) ** 2
+    start = side_distance
+    stop = 1 - side_distance
+
+    # Add all steps
+    steps = linspace(start, stop, num_points)
+
+    return tuple(steps)
 
 class RangeSliderNew(Slider):
     def __init__(
@@ -22,8 +48,14 @@ class RangeSliderNew(Slider):
             value_max: Numeric = 1,
             width:  int = 400,  # These might be numeric?
             height: int = 40,   # These might be numeric? 
+            
+            # TODO: Better names for this
             value_display: Callable[[Numeric], str] = lambda v: f"{v:0.2f}",
-            inverse_display: Callable[[str], float] = lambda s: float(s)
+            inverse_display: Callable[[str], float] = lambda s: float(s),
+            
+            num_knobs: int | None = None,
+            knob_start_locs: Sequence[float] | None = None,
+            knob_formatter: KnobFormatOptions | Sequence[KnobFormatOptions] | None = None,
         ):
         super().__init__(
             master, width, height, value_min, value_max,
@@ -39,19 +71,33 @@ class RangeSliderNew(Slider):
             value_display=value_display
         )
 
-        self._add_new_bar(0.25, HeadFormatOptions(inner_colour="#00ff00"))
-        self._add_new_bar(0.75, HeadFormatOptions(inner_colour="#ff0000"))
+        num_knobs = num_knobs if num_knobs else 2
+        assert num_knobs >= 2, ValueError("MUST at least two knobs present!")
 
+        knob_formatter = knob_formatter if knob_formatter else KnobFormatOptions()
+        knob_start_locs = knob_start_locs if knob_start_locs else even_point_space(num_knobs)
 
-    def get_in_and_out(self) -> tuple[Numeric, Numeric]:
+        ## Setup the Slider Knobs
+        for i in range(num_knobs):
+            fmt = knob_formatter if isinstance(knob_formatter, KnobFormatOptions) else knob_formatter[i]
+            fmt = fmt if fmt else KnobFormatOptions()
+
+            pos = knob_start_locs[i]
+
+            # Add bars
+            self._add_new_bar(pos, fmt)
+
+    def get_min_max_knobs(self) -> tuple[Numeric, Numeric]:
         """
-        Obtain the values of the 'in' and 'out' marks.
+        Obtain the values of the 'min' and 'max' knobs.
 
-        Returns (in, out) as a tuple.
+        Returns (min, max) as a tuple.
         """
         
         values = tuple(self.get_values())
-        assert len(values) == 2
+        assert len(values) >= 2
+
+        values = values[0], values[-1]
 
         return values
 
