@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
 
-from typing import TypedDict, List, Callable, Optional
+from typing import Callable, Optional
 
 from .common_typing import Numeric, KnobFormatOptions, \
       LineFormatOptions, KnobCompIds, KnobInfo
@@ -40,6 +40,8 @@ class Slider(Frame):
         value_display: Callable[[Numeric], str] | None = None,
         knob_format: KnobFormatOptions | None = None,
         allow_empty_bar: bool = False,
+
+        line_format: LineFormatOptions | None = None,
     ):
         if step_size == None:
             # inherit from class variable
@@ -50,6 +52,7 @@ class Slider(Frame):
 
         self._value_display = value_display
         self._knob_format = knob_format if knob_format else KnobFormatOptions()
+        self._line_format = line_format if line_format else LineFormatOptions()
 
         Frame.__init__(self, master, height=height, width=width)
         self.master = master
@@ -79,7 +82,7 @@ class Slider(Frame):
 
         self._val_change_callback = lambda lis: None
 
-        self.knobs: List[KnobInfo] = []
+        self.knobs: list[KnobInfo] = []
         self.selected_idx: int | None = None  # current selection bar index
         for value in self.init_lis:
             pos = (value - min_val) / (max_val - min_val)
@@ -109,11 +112,11 @@ class Slider(Frame):
         for knob in self.knobs:
             knob["ids"] = self.__add_knob(knob["norm_pos"])
 
-    def get_values(self) -> List[float]:
+    def get_values(self) -> list[float]:
         values = [bar["value"] for bar in self.knobs]
         return sorted(values)
     
-    def set_value_change_callback(self, callback: Callable[[List[float]], None]):
+    def set_value_change_callback(self, callback: Callable[[list[float]], None]):
         self._val_change_callback = callback
 
     def _mouse_motion(self, event):
@@ -188,7 +191,8 @@ class Slider(Frame):
 
     def __add_track(self, startx, starty, endx, endy):
         id1 = self.canv.create_line(
-            startx, starty, endx, endy, fill=Slider.LINE_COLOR, width=Slider.LINE_WIDTH
+            startx, starty, endx, endy, 
+            fill=self._line_format.colour, width=self._line_format.width
         )
         return id1
 
