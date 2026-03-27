@@ -235,8 +235,10 @@ class Slider(Frame):
         )
 
         # Show Text Formatter
-        id_value = None
-        if self.show_value:
+        id_value = None 
+        if (head_format_options.show_text_label is None and self.show_value) or \
+            head_format_options.show_text_label:
+            
             y_value = y + head_format_options.outer_radius + 8
             value = pos * (self.max_val - self.min_val) + self.min_val
             id_value = self.canv.create_text(

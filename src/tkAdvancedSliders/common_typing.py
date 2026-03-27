@@ -12,6 +12,7 @@ class KnobFormatOptions(NamedTuple):
     inner_radius: int = 5
     inner_colour: str = "#5c8a8a"
     line_width:   int = 2
+    show_text_label: bool | None = None
 
 # Line Formatting
 class LineFormatOptions(NamedTuple):

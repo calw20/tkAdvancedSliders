@@ -76,6 +76,8 @@ class RangeSliderNew(Slider):
             num_knobs: int | None = None,
             knob_start_locs: Sequence[float] | None = None,
             knob_formatter: KnobFormatOptions | Sequence[KnobFormatOptions] | None = None,
+
+            spinbox_input: bool = True,
         ):
         super().__init__(
             master, width, height, value_min, value_max,
@@ -95,6 +97,8 @@ class RangeSliderNew(Slider):
         assert num_knobs >= 2, ValueError("MUST at least two knobs present!")
 
         knob_start_locs = knob_start_locs if knob_start_locs else even_point_space(num_knobs)
+
+        self._spinbox_input = spinbox_input
 
         # TODO Move this to base class?
         self._permit_knob_overlap = False
@@ -131,6 +135,8 @@ class RangeSliderNew(Slider):
             pos = knob_start_locs[i]
 
             # Add bars
+            if i in [1,3]:
+                fmt = fmt._replace(show_text_label = False)
             self._add_new_knob(pos, fmt)
 
     def _move_knob(self, event: Event[Canvas]):
@@ -239,7 +245,7 @@ class RangeSlider(Frame):
         self.__entry_in = ttk.Entry(self, width=len(value_display(value_min)), textvariable=self.__entry_in_var)
         self.__entry_in.grid(row=1, sticky=W)
         self.__entry_out_var = StringVar()
-        self.__entry_out = ttk.Entry(self, width=len(value_display(value_max)), textvariable=self.__entry_out_var)
+        self.__entry_out = ttk.Spinbox(self, width=len(value_display(value_max)), textvariable=self.__entry_out_var)
         self.__entry_out.grid(row=1, sticky=E)
 
         # Slider bar and heads

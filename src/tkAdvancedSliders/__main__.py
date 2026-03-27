@@ -1,5 +1,6 @@
 from tkinter import Tk
 from . import RangeSlider, RangeSliderNew, Slider
+from tkinter import ttk
 
 if __name__ == "__main__":
     # Short demo with two sliders - one with numbers 0.0-1.0, the other with timestamps 0:00 - 51:05
@@ -34,6 +35,9 @@ if __name__ == "__main__":
 
     slider_new_new = RangeSliderNew(root, num_knobs=5, width=300)
     slider_new_new.grid(row=5)
+
+    spinbox = ttk.Spinbox(root)
+    spinbox.grid(row=6)
 
     # Bind right-clicking on the window to return the values of 'in' and 'out'.
     # These are the primary outputs of this widget and what you would use in your code.
