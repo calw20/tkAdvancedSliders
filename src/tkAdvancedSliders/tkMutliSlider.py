@@ -153,13 +153,13 @@ class Slider(Frame):
             self.canv.delete(id)
         self.knobs.pop(idx)
 
-    def _add_knob(self, event):
+    # Event Wrapper for Tkinter
+    def _add_knob(self, event: Event[Canvas]):
         x = event.x
-        y = event.y
 
         if self.selected_idx == None:
             pos = self._calc_pos(x)
-            
+            self._add_new_knob(pos, self._knob_format)
 
     def _add_new_knob(
             self, 
