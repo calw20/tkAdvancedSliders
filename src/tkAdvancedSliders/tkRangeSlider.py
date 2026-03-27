@@ -50,6 +50,10 @@ def even_point_space(
     return tuple(steps)
 
 class RangeSliderNew(Slider):
+    DEFAULT_MIN_KNOB_FORMAT = KnobFormatOptions(inner_colour="#00ff00")
+    DEFAULT_MID_KNOB_FORMAT = KnobFormatOptions(inner_colour="#ffff00")
+    DEFAULT_MAX_KNOB_FORMAT = KnobFormatOptions(inner_colour="#ff0000")
+    
     def __init__(
             self, 
             master: Any, # This should be a Tk _something_
@@ -89,7 +93,6 @@ class RangeSliderNew(Slider):
         num_knobs = num_knobs if num_knobs else 2
         assert num_knobs >= 2, ValueError("MUST at least two knobs present!")
 
-        knob_formatter = knob_formatter if knob_formatter else KnobFormatOptions()
         knob_start_locs = knob_start_locs if knob_start_locs else even_point_space(num_knobs)
 
         # TODO Move this to base class?
@@ -101,9 +104,26 @@ class RangeSliderNew(Slider):
         for i in range(num_knobs):
             fmt = None
             if knob_formatter is None:
-                fmt = KnobFormatOptions()
+                #Use colours
+                # Green (Start / Min)
+                if num_knobs <= 3 and i == 0:
+                    fmt = self.DEFAULT_MIN_KNOB_FORMAT
+                
+                # Red (End / Max)
+                elif (num_knobs == 2 and i == 1) or \
+                    (num_knobs == 3 and i == 2):
+                    fmt = self.DEFAULT_MAX_KNOB_FORMAT
+                
+                # Middle (Yellow)
+                elif num_knobs == 3 and i == 1:
+                    fmt = self.DEFAULT_MID_KNOB_FORMAT
+                
+                else:
+                    fmt = KnobFormatOptions()
+            
             elif isinstance(knob_formatter, KnobFormatOptions):
                 fmt = knob_formatter
+            
             else:
                 fmt = knob_formatter[i]
 
