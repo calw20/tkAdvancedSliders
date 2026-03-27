@@ -125,7 +125,7 @@ class RangeSliderNew(Slider):
         selected_pos = self._calc_pos(x)
 
         # Sort knobs in-case they haven't been sorted?
-        self.knobs = sorted(self.knobs, key=lambda k: k["norm_pos"])
+        #self.knobs = sorted(self.knobs, key=lambda k: k["norm_pos"])
 
         # Check right
         if self.selected_idx < (len(self.knobs) - 1):
