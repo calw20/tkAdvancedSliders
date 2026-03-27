@@ -1,7 +1,9 @@
 # Common Types
 # Cal Wing
 
-from typing import NamedTuple, TypedDict
+from typing import Callable, NamedTuple, TypedDict
+
+from tkinter import StringVar
 
 # Generic Number Type
 type Numeric = int | float
@@ -20,6 +22,7 @@ class KnobFormatOptions(NamedTuple):
     inner_colour: str = "#5c8a8a"
     line_width:   int = 2
     show_text_label: bool | None = None
+    #label_callback: Callable[[Numeric], str] = str
 
 # Knob Info Dictionary
 class KnobInfo(TypedDict):
@@ -27,6 +30,12 @@ class KnobInfo(TypedDict):
     norm_pos: float
     value: float
     fmt_options: KnobFormatOptions
+    #label_var: StringVar
+
+class KnobInput(TypedDict):
+    spinbox_idx: int
+    str_var: StringVar
+    str_fmt: Callable[[Numeric], str]
 
 # Line Formatting
 class LineFormatOptions(NamedTuple):

@@ -9,6 +9,8 @@ from typing import Callable, NamedTuple, Any, Sequence
 from tkinter import *
 from tkinter import ttk
 
+from functools import partial
+
 from .common_typing import Numeric, KnobFormatOptions, LineFormatOptions
 from .tkMutliSlider import Slider
 
@@ -79,6 +81,9 @@ class RangeSliderNew(Slider):
 
             spinbox_input: bool = True,
         ):
+        num_knobs = num_knobs if num_knobs else 2
+        assert num_knobs >= 2, ValueError("MUST at least two knobs present!")
+    
         super().__init__(
             master, width, height, value_min, value_max,
 
@@ -86,15 +91,13 @@ class RangeSliderNew(Slider):
 
             step_size = step_size, 
             
-            show_value_label=True,
+            show_value_label=False,
 
             removable=False, addable=False,
 
-            value_display=value_display
+            value_display=value_display,
+            col_span=num_knobs
         )
-
-        num_knobs = num_knobs if num_knobs else 2
-        assert num_knobs >= 2, ValueError("MUST at least two knobs present!")
 
         knob_start_locs = knob_start_locs if knob_start_locs else even_point_space(num_knobs)
 
@@ -135,9 +138,48 @@ class RangeSliderNew(Slider):
             pos = knob_start_locs[i]
 
             # Add bars
-            if i in [1,3]:
-                fmt = fmt._replace(show_text_label = False)
             self._add_new_knob(pos, fmt)
+    
+        #self.sbox_canv = Canvas(self, height=self.canv_H, width=self.canv_W)
+        #self.sbox_canv.grid(row=1)
+
+        
+
+        self.__spinboxes: list[tuple[StringVar, ttk.Spinbox]] = []
+        max_width = len(self._value_display(self.max_val) if self._value_display else str(self.max_val))
+        for i, knob in enumerate(self.knobs):
+            value = self._value_display(knob["value"]) if self._value_display else str(knob["value"])
+            txtVar = StringVar()
+            sbox = ttk.Spinbox(self, textvariable=txtVar, width=max_width)
+            
+            txtVar.set(value)
+
+            sticky = ''
+            padding = 0
+            if i == 0:
+                sticky = 'w'
+                padding = (8, 0)
+            elif i == (len(self.knobs) - 1):
+                sticky = "e"
+                padding = (0, 8)
+
+            sbox.grid(row=1, column=i, sticky=sticky, padx=padding)
+            sbox.bind("<<Increment>>", partial(self._update_all_the_things, idx=i, step= (self.step_size_frac if self.step_size_frac else 0.05)))
+            sbox.bind("<<Decrement>>", partial(self._update_all_the_things, idx=i, step=-(self.step_size_frac if self.step_size_frac else 0.05)))
+
+            self.__spinboxes.append((txtVar, sbox))
+    
+    def _update_all_the_things(self, _: Event, *, idx: int, step: Numeric):
+        pos = self.knobs[idx]["norm_pos"]
+
+        if not (self.min_val <= pos + step <= self.max_val):
+            return False
+        
+        pos += step
+        self._do_move_knob(idx, pos)
+        self.__spinboxes[idx][0].set(self._value_display(self.knobs[idx]["value"]) if self._value_display else str(self.knobs[idx]["value"]))
+        print(self.__spinboxes[idx][0].get())
+        print(self.__spinboxes[idx][1].get())
 
     def _move_knob(self, event: Event[Canvas]):
         if self._permit_knob_overlap:
@@ -244,6 +286,7 @@ class RangeSlider(Frame):
         self.__entry_in_var = StringVar()
         self.__entry_in = ttk.Entry(self, width=len(value_display(value_min)), textvariable=self.__entry_in_var)
         self.__entry_in.grid(row=1, sticky=W)
+
         self.__entry_out_var = StringVar()
         self.__entry_out = ttk.Spinbox(self, width=len(value_display(value_max)), textvariable=self.__entry_out_var)
         self.__entry_out.grid(row=1, sticky=E)

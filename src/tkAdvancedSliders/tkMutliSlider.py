@@ -42,6 +42,7 @@ class Slider(Frame):
         allow_empty_bar: bool = False,
 
         line_format: LineFormatOptions | None = None,
+        col_span: int | None = None,
     ):
         if step_size == None:
             # inherit from class variable
@@ -90,12 +91,22 @@ class Slider(Frame):
                 "norm_pos": pos, 
                 "ids": (None, None, None), # type: ignore 
                 "value": value, 
-                "fmt_options": self._knob_format
+                "fmt_options": self._knob_format,
+                #"label_var": StringVar(value=self._knob_format.label_callback(value))
             } 
             self.knobs.append(knob)
 
         self.canv = Canvas(self, height=self.canv_H, width=self.canv_W)
-        self.canv.pack()
+        #self.canv.pack()
+
+        # Setup a bunch of equal spaced columns for each knob
+        if col_span and col_span > 1:
+            self.canv.grid(row=0, sticky=EW, columnspan=col_span)
+            for i in range(len(self.knobs)):
+                self.canv.columnconfigure(i, weight=1, uniform="equal")
+        else:
+            self.canv.grid(row=0, sticky=EW)
+        
         self.canv.bind("<Motion>", self._mouse_motion)
         self.canv.bind("<B1-Motion>", self._move_knob)
         
@@ -137,6 +148,10 @@ class Slider(Frame):
             return False
         pos = self._calc_pos(x)
         idx = self.selected_idx
+        
+        self._do_move_knob(idx, pos)
+
+    def _do_move_knob(self, idx, pos):
         if self.step_size_frac > 0:
             curr_pos = self.knobs[idx]["norm_pos"]
             if abs(curr_pos - pos) < (self.step_size_frac * 0.75):
@@ -243,6 +258,7 @@ class Slider(Frame):
 
             y_value = y + head_format_options.outer_radius + 8
             value = pos * (self.max_val - self.min_val) + self.min_val
+            
             id_value = self.canv.create_text(
                 x, y_value, text=(self._value_display(value) if self._value_display else format(value, Slider.DIGIT_PRECISION))
             )

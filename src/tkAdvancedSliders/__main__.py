@@ -36,8 +36,8 @@ if __name__ == "__main__":
     slider_new_new = RangeSliderNew(root, num_knobs=5, width=300)
     slider_new_new.grid(row=5)
 
-    spinbox = ttk.Spinbox(root)
-    spinbox.grid(row=6)
+    slider_new_new = RangeSliderNew(root, num_knobs=5, width=300)
+    slider_new_new.grid(row=5)
 
     # Bind right-clicking on the window to return the values of 'in' and 'out'.
     # These are the primary outputs of this widget and what you would use in your code.
