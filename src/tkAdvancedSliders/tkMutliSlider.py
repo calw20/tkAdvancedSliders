@@ -88,7 +88,7 @@ class Slider(Frame):
         self._val_change_callback = lambda lis: None
 
         self.knobs: List[KnobInfo] = []
-        self.selected_idx = None  # current selection bar index
+        self.selected_idx: int | None = None  # current selection bar index
         for value in self.init_lis:
             pos = (value - min_val) / (max_val - min_val)
             knob: KnobInfo = {

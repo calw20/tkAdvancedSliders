@@ -15,8 +15,10 @@ from .tkMutliSlider import Slider
 
 # Try to use numpy linspace if its present
 # Really it don't matter, should probs remove this
+# TODO: Move to its own file?
 try:
-    from numpy import linspace as np_lin
+    from numpy import linspace as np_lin # pyright: ignore[reportMissingImports]
+    # We wrap linspace here so the function definition is the same.
     def linspace(start: Numeric, stop: Numeric, num_steps: int) -> list[float]:
         return np_lin(start, stop, num_steps).tolist()
     
@@ -28,11 +30,19 @@ except ImportError:
         return [round(start + (i * step), 8) for i in range(0, num_steps)]
 
 # Use linspace to put the relivenet number of points around
-def even_point_space(num_points: int) -> tuple[float, ...]:
-    # Determine Start, Stop, Step
-    side_distance = (1 / num_points) ** 2
-    start = side_distance
-    stop = 1 - side_distance
+# TODO: Move to own file
+def even_point_space(
+        num_points: int,
+        *,
+        side_distance: float | None = None, 
+        start: float | None = None, 
+        stop: float | None = None
+    ) -> tuple[float, ...]:
+
+    # Determine Start, Stop, Side Distance
+    side_distance = side_distance if side_distance else (1 / num_points) ** 2
+    start = start if start else side_distance
+    stop = stop if stop else (1 - side_distance)
 
     # Add all steps
     steps = linspace(start, stop, num_points)
@@ -48,8 +58,13 @@ class RangeSliderNew(Slider):
             value_max: Numeric = 1,
             width:  int = 400,  # These might be numeric?
             height: int = 40,   # These might be numeric? 
+            step_size: Numeric | None = None,
             
+            # This might be an arg for the parent?
+            int_only: bool = False,
+
             # TODO: Better names for this
+            # This is for the converting of str <-> Numeric
             value_display: Callable[[Numeric], str] = lambda v: f"{v:0.2f}",
             inverse_display: Callable[[str], float] = lambda s: float(s),
             
@@ -62,7 +77,7 @@ class RangeSliderNew(Slider):
 
             init_lis = None,
 
-            step_size = 0.25, 
+            step_size = step_size, 
             
             show_value=True,
 
@@ -76,6 +91,9 @@ class RangeSliderNew(Slider):
 
         knob_formatter = knob_formatter if knob_formatter else KnobFormatOptions()
         knob_start_locs = knob_start_locs if knob_start_locs else even_point_space(num_knobs)
+
+        # TODO Move this to base class?
+        self._permit_knob_overlap = False
 
         ## Setup the Slider Knobs
         # Since the linspace is in order this will add knobs in order of
@@ -94,14 +112,32 @@ class RangeSliderNew(Slider):
             # Add bars
             self._add_new_knob(pos, fmt)
 
-    def _move_knob(self, event):
-        x = event.x
+    def _move_knob(self, event: Event[Canvas]):
+        if self._permit_knob_overlap:
+            return super()._move_knob(event)
+
+        # if no knob is selected, ignore the call
         if self.selected_idx == None:
             return False
+                
+        # Get the proposed new pos
+        x = event.x
         selected_pos = self._calc_pos(x)
-        
-        for i, idx in self.knobs:
-            pass    
+
+        # Sort knobs in-case they haven't been sorted?
+        self.knobs = sorted(self.knobs, key=lambda k: k["norm_pos"])
+
+        # Check right
+        if self.selected_idx < (len(self.knobs) - 1):
+            right_knob = self.knobs[self.selected_idx + 1]
+            if selected_pos > right_knob["norm_pos"]:
+                return False
+
+        # Check left
+        if self.selected_idx > 0:
+            left_knob = self.knobs[self.selected_idx - 1]
+            if selected_pos < left_knob["norm_pos"]:
+                return False
 
         return super()._move_knob(event)
 
