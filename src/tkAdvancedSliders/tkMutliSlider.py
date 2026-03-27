@@ -110,9 +110,10 @@ class Slider(Frame):
         if addable:
             self.canv.bind("<ButtonRelease-1>", self._add_knob)
 
-        self.__add_track(
-            self.slider_x, self.slider_y, self.canv_W - self.slider_x, self.slider_y
-        )
+        self._track_idx = self.__add_track(
+                self.slider_x, self.slider_y, # Start 
+                self.canv_W - self.slider_x, self.slider_y # End
+            )
         for knob in self.knobs:
             knob["ids"] = self.__add_knob(knob["norm_pos"])
 

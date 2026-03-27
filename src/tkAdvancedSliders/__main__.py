@@ -32,7 +32,7 @@ if __name__ == "__main__":
     slider_new_new_3 = RangeSliderNew(root, num_knobs=3, step_size=0.1)
     slider_new_new_3.grid(row=4)
 
-    slider_new_new = RangeSliderNew(root, num_knobs=5)
+    slider_new_new = RangeSliderNew(root, num_knobs=5, width=300)
     slider_new_new.grid(row=5)
 
     # Bind right-clicking on the window to return the values of 'in' and 'out'.

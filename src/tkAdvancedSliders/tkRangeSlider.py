@@ -50,6 +50,7 @@ def even_point_space(
     return tuple(steps)
 
 class RangeSliderNew(Slider):
+    # TODO: Make nicer, probs rename
     DEFAULT_MIN_KNOB_FORMAT = KnobFormatOptions(inner_colour="#00ff00")
     DEFAULT_MID_KNOB_FORMAT = KnobFormatOptions(inner_colour="#ffff00")
     DEFAULT_MAX_KNOB_FORMAT = KnobFormatOptions(inner_colour="#ff0000")
@@ -60,8 +61,8 @@ class RangeSliderNew(Slider):
             *,
             value_min: Numeric = 0,
             value_max: Numeric = 1,
-            width:  int = 400,  # These might be numeric?
-            height: int = 40,   # These might be numeric? 
+            width:  int = 400, 
+            height: int = 40,   
             step_size: Numeric | None = None,
             
             # This might be an arg for the parent?
