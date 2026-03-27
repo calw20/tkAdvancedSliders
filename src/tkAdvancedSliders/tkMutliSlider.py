@@ -3,25 +3,15 @@ from tkinter.ttk import *
 
 from typing import TypedDict, List, Callable, Optional
 
-from .common_typing import Numeric, KnobFormatOptions, LineFormatOptions
-
-type BarCompIDs = tuple[int, int, int | None]
-
-class KnobInfo(TypedDict):
-    ids: BarCompIDs
-    norm_pos: float
-    value: float
-    fmt_options: KnobFormatOptions
+from .common_typing import Numeric, KnobFormatOptions, \
+      LineFormatOptions, KnobCompIds, KnobInfo
 
 class Slider(Frame):
     LINE_COLOR = "#476b6b"
     LINE_WIDTH = 3
 
     # I think this is the bubble head
-    BAR_COLOR_INNER = "#5c8a8a"
-    BAR_COLOR_OUTTER = "#c2d6d6"
-    BAR_RADIUS = 10
-    BAR_RADIUS_INNER = BAR_RADIUS - 5
+    SLIDER_LEFT_PADDING = 10
     
     DIGIT_PRECISION = ".1f"  # for showing in the canvas
 
@@ -42,7 +32,7 @@ class Slider(Frame):
         
         init_lis: Optional[list[Numeric]] = None,
 
-        show_value = True,
+        show_value_label = True,
         removable = False,
         addable = False,
 
@@ -74,16 +64,18 @@ class Slider(Frame):
         self.min_val = min_val
         self.step_size_frac = step_size / float(max_val - min_val)  # step size fraction
 
-        self.show_value = show_value
+        self.show_value = show_value_label
         self.H = height
         self.W = width
         self.canv_H = self.H
         self.canv_W = self.W
-        if not show_value:
+        if not show_value_label:
             self.slider_y = self.canv_H / 2  # y pos of the slider
         else:
             self.slider_y = self.canv_H * 2 / 5
-        self.slider_x = Slider.BAR_RADIUS  # x pos of the slider (left side)
+        
+        # TODO - Make this dynamic, should probs use the max slider size?
+        self.slider_x = Slider.SLIDER_LEFT_PADDING  # x pos of the slider (left side)
 
         self._val_change_callback = lambda lis: None
 
@@ -173,7 +165,7 @@ class Slider(Frame):
             self, 
             pos: float, 
             head_format_options: KnobFormatOptions
-        ) -> BarCompIDs:
+        ) -> KnobCompIds:
         
         bar: KnobInfo = {
             "ids": (None, None, None), # type: ignore
@@ -204,7 +196,7 @@ class Slider(Frame):
             self, 
             pos: float, 
             head_format_options: KnobFormatOptions = KnobFormatOptions(),
-        ) -> BarCompIDs:
+        ) -> KnobCompIds:
         """@ pos: position of the bar, ranged from (0,1)"""
         if pos < 0 or pos > 1:
             raise Exception("Pos error - Pos: " + str(pos))
@@ -215,30 +207,36 @@ class Slider(Frame):
         y = self.slider_y
         x = self.slider_x + pos * L
 
-        # Create bar
-        id_outer = self.canv.create_oval(
-            x - R,
-            y - R,
-            x + R,
-            y + R,
-            fill = head_format_options.outer_colour,
-            width = head_format_options.line_width,
-            outline="",
-        )
-        id_inner = self.canv.create_oval(
-            x - r, 
-            y - r, 
-            x + r, 
-            y + r, 
-            fill = head_format_options.inner_colour, 
-            outline=""
-        )
+        id_outer, id_inner, id_value = None, None, None
 
-        # Show Text Formatter
-        id_value = None 
+        # Create Knob
+        # Draw Outer Oval
+        if True: #TODO Add logic
+            id_outer = self.canv.create_oval(
+                x - R,
+                y - R,
+                x + R,
+                y + R,
+                fill = head_format_options.outer_colour,
+                width = head_format_options.line_width,
+                outline="",
+            )
+
+        # Draw Inner Oval
+        if True: #TODO Add logic
+            id_inner = self.canv.create_oval(
+                x - r, 
+                y - r, 
+                x + r, 
+                y + r, 
+                fill = head_format_options.inner_colour, 
+                outline=""
+            )
+
+        # Show Text Formatter 
         if (head_format_options.show_text_label is None and self.show_value) or \
             head_format_options.show_text_label:
-            
+
             y_value = y + head_format_options.outer_radius + 8
             value = pos * (self.max_val - self.min_val) + self.min_val
             id_value = self.canv.create_text(

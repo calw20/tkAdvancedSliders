@@ -86,7 +86,7 @@ class RangeSliderNew(Slider):
 
             step_size = step_size, 
             
-            show_value=True,
+            show_value_label=True,
 
             removable=False, addable=False,
 

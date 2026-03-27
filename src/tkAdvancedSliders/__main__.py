@@ -21,7 +21,7 @@ if __name__ == "__main__":
         min_val=-100,
         max_val=100,
         init_lis=[-50, 0, 75],
-        show_value=True,
+        show_value_label=True,
         removable=True,
         addable=True,
     )
