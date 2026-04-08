@@ -1,3 +1,4 @@
+from functools import partial
 from tkinter import *
 from tkinter.ttk import *
 
@@ -51,7 +52,7 @@ class Slider(Frame):
         assert step_size <= max_val - min_val, "step size must be smaller than range"
         assert min_val < max_val, "min value must be smaller than max value"
 
-        self._value_display = value_display
+        self._value_display = value_display if value_display is not None else partial(str)
         self._knob_format = knob_format if knob_format else KnobFormatOptions()
         self._line_format = line_format if line_format else LineFormatOptions()
 

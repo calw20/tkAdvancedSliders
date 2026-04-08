@@ -24,12 +24,47 @@ try:
     def linspace(start: Numeric, stop: Numeric, num_steps: int) -> list[float]:
         return np_lin(start, stop, num_steps).tolist()
     
+    from numpy import arange # pyright: ignore[reportMissingImports]
+    
 except ImportError:
     # https://gist.github.com/davebiagioni/1ac21feb1c2db04be4e6
     # https://stackoverflow.com/questions/60695284/linearly-spaced-array-in-c
     def linspace(start: Numeric, stop: Numeric, num_steps: int) -> list[float]:
         step = (stop - start) / (num_steps - 1)
         return [round(start + (i * step), 8) for i in range(0, num_steps)]
+
+    # Google Search AI gave me this, seems fine enough 
+    def arange(
+            start: Numeric, 
+            stop: Numeric | None = None, 
+            step: Numeric = 1
+        ) -> tuple[Numeric, ...]:
+
+        # Handle optional 'stop' argument like np.arange(stop)
+        if stop is None:
+            stop = start
+            start = 0
+        
+        result: list[Numeric] = []
+        current = start
+        
+        # Positive step: increment until current >= stop
+        if step > 0:
+            while current < stop:
+                result.append(current)
+                current += step
+
+        # Negative step: decrement until current <= stop
+        elif step < 0:
+            while current > stop:
+                result.append(current)
+                current += step
+
+        # Step of 0 is not allowed in NumPy
+        else:
+            raise ValueError("Step must be non-zero")
+            
+        return tuple(result)
 
 # Use linspace to put the relivenet number of points around
 # TODO: Move to own file
@@ -101,6 +136,8 @@ class RangeSliderNew(Slider):
 
         knob_start_locs = knob_start_locs if knob_start_locs else even_point_space(num_knobs)
 
+        self._increment_step = self.step_size_frac if self.step_size_frac else 0.05
+        
         self._spinbox_input = spinbox_input
 
         # TODO Move this to base class?
@@ -145,14 +182,15 @@ class RangeSliderNew(Slider):
 
         
 
-        self.__spinboxes: list[tuple[StringVar, ttk.Spinbox]] = []
+        self.__spinboxes: list[ttk.Spinbox] = []
         max_width = len(self._value_display(self.max_val) if self._value_display else str(self.max_val))
+        values = [self._value_display(i) for i in arange(self.min_val, self.max_val, self._increment_step)]
+                  
         for i, knob in enumerate(self.knobs):
-            value = self._value_display(knob["value"]) if self._value_display else str(knob["value"])
-            txtVar = StringVar()
-            sbox = ttk.Spinbox(self, textvariable=txtVar, width=max_width)
+            value = self.max_val * (1-knob["value"]) +  self.min_val * knob["value"]
             
-            txtVar.set(value)
+            sbox = ttk.Spinbox(self, width=max_width, values=values)
+            sbox.set(values[0])
 
             sticky = ''
             padding = 0
@@ -164,10 +202,10 @@ class RangeSliderNew(Slider):
                 padding = (0, 8)
 
             sbox.grid(row=1, column=i, sticky=sticky, padx=padding)
-            sbox.bind("<<Increment>>", partial(self._update_all_the_things, idx=i, step= (self.step_size_frac if self.step_size_frac else 0.05)))
-            sbox.bind("<<Decrement>>", partial(self._update_all_the_things, idx=i, step=-(self.step_size_frac if self.step_size_frac else 0.05)))
+            sbox.bind("<<Increment>>", partial(self._update_all_the_things, idx=i, step= self._increment_step))
+            sbox.bind("<<Decrement>>", partial(self._update_all_the_things, idx=i, step=-self._increment_step))
 
-            self.__spinboxes.append((txtVar, sbox))
+            self.__spinboxes.append(sbox)
     
     def _update_all_the_things(self, _: Event, *, idx: int, step: Numeric):
         pos = self.knobs[idx]["norm_pos"]
@@ -177,9 +215,9 @@ class RangeSliderNew(Slider):
         
         pos += step
         self._do_move_knob(idx, pos)
-        self.__spinboxes[idx][0].set(self._value_display(self.knobs[idx]["value"]) if self._value_display else str(self.knobs[idx]["value"]))
-        print(self.__spinboxes[idx][0].get())
-        print(self.__spinboxes[idx][1].get())
+        #self.__spinboxes[idx].set(self._value_display(self.knobs[idx]["value"]) if self._value_display else str(self.knobs[idx]["value"]))
+
+        print(self.__spinboxes[idx].get())
 
     def _move_knob(self, event: Event[Canvas]):
         if self._permit_knob_overlap:
