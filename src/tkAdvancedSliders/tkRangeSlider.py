@@ -12,29 +12,12 @@ from tkinter import ttk
 from functools import partial
 
 from .common_typing import Numeric, KnobFormatOptions, LineFormatOptions
-from .misc_math import linspace, arange
+from .misc_math import linspace, arange, even_point_space
 from .tkMutliSlider import Slider
 
 
 # Use linspace to put the relivenet number of points around
 # TODO: Move to own file
-def even_point_space(
-        num_points: int,
-        *,
-        side_distance: float | None = None, 
-        start: float | None = None, 
-        stop: float | None = None
-    ) -> tuple[float, ...]:
-
-    # Determine Start, Stop, Side Distance
-    side_distance = side_distance if side_distance else (1 / num_points) ** 2
-    start = start if start else side_distance
-    stop = stop if stop else (1 - side_distance)
-
-    # Add all steps
-    steps = linspace(start, stop, num_points)
-
-    return tuple(steps)
 
 class RangeSliderNew(Slider):
     # TODO: Make nicer, probs rename

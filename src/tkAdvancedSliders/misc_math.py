@@ -2,10 +2,17 @@
 # A collection of functions that will try to use numpy if it is installed,
 # otherwise will use a pure python implementation
 
+from typing import Callable, cast
 from .common_typing import Numeric
 
 # Only expose the functions we have explicitly defined 
-__all__ = ['linspace', 'arange']
+__all__ = [
+    # Numpy like Functions
+    'linspace', 'arange',
+    
+    # Other Funcs
+    'even_point_space', 
+    ]
 
 # linspace
 try:
@@ -67,3 +74,41 @@ except ImportError:
             raise ValueError("Step must be non-zero")
             
         return tuple(result)
+
+def even_point_space(
+        num_points: int,
+        *,
+        side_distance: float | None = None, 
+        start: float | None = None, 
+        stop: float | None = None
+    ) -> tuple[float, ...]:
+    """Generate a number of points evenly spaced apart a range.
+
+    Args:
+        num_points (int): The number of points to generate
+
+        side_distance (float | None, optional): The distance to from the 'ends'
+            of the point range. If none defaults to `(1 / num_points) ** 2` 
+            Defaults to None.
+        
+        start (float | None, optional): Start of the point range. If `None` will
+            default to `side_distance`. 
+            Defaults to None.
+        
+        stop (float | None, optional): End of the point range. If `None` will
+            default to `1 - side_distance`. 
+            Defaults to None.
+
+    Returns:
+        tuple[float, ...]: The points
+    """
+
+    # Determine Start, Stop, Side Distance
+    side_distance = side_distance if side_distance else (1 / num_points) ** 2
+    start = start if start else side_distance
+    stop = stop if stop else (1 - side_distance)
+
+    # Add all steps
+    steps = linspace(start, stop, num_points)
+
+    return tuple(steps)
